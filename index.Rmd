@@ -38,7 +38,38 @@ tidy <- data %>%
   summarise(total_count = total_count) 
 
 tidy <- left_join(sites, tidy, by = "ID")
+
+#specific to fire data now, calculate pre-post and absolute value of years 
+tidy <- tidy %>% 
+   mutate(offset = year - fire, posting = case_when(offset > 0 ~ "post", offset < 0 ~ "pre", offset == 0 ~ "same year"), n_years = abs(offset)) %>% 
+  na.exclude() %>% 
+  distinct(year, .keep_all= TRUE)
   
+```
+
+### Data viz  
+EDA only for now.
+
+```{r}
+ggplot(tidy, aes(reorder(posting, total_count), total_count)) +
+  geom_boxplot() + 
+  stat_summary(fun.y=mean, geom="point", shape=18, size=5, color="red", fill="red") +
+  labs(x = "posting", y = "total count")
+
+ggplot(tidy, aes(n_years, total_count, color = posting)) +
+  geom_point() +
+  geom_smooth(method = lm) +
+  scale_color_brewer(palette = "Set1") +
+  labs(x = "years before or after fire", y = "total count", color = "none")
+
+tidy %>% 
+  filter(posting == "post") %>% 
+  ggplot(., aes(n_years, total_count, color = posting)) +
+  geom_point() +
+  geom_smooth(method = lm) +
+  scale_color_brewer(palette = "Set1") +
+  labs(x = "years post fire", color = "", y = "total count") +
+  theme(legend.position = "none")
 
 ```
 
