@@ -1,0 +1,44 @@
+---
+title: ""
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## Landscape-level fire-diversity analysis  
+
+![](./phoenix.png)  
+
+Fire data polygons (or any spatial assets) spatially joined to biodiversity data from [GBIF](https://www.gbif.org) (or any similarly geocoded diversity data).
+
+### Data  
+First crack - birds.
+
+```{r}
+#libraries
+library(tidyverse)
+library(skimr)
+
+#count data
+data <- read_csv("data/counts.csv") %>% 
+  rename(ID = JOIN_FID, fire = FIRE_YEARn, site = INCIDENT, size = GISAcres, total_count = TotalBird)
+
+#skim for QA/AC
+#skim(data)
+
+#tidy  
+sites <- data %>% 
+  group_by(ID) %>% 
+  summarise(fire = mean(fire), size = as.integer(max(size)))
+  
+tidy <- data %>% 
+  group_by(ID, year) %>% 
+  summarise(total_count = total_count) 
+
+tidy <- left_join(sites, tidy, by = "ID")
+  
+
+```
+
